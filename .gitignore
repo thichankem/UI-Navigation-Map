@@ -1,0 +1,12 @@
+node_modules
+dist
+.claude
+*.tsbuildinfo
+coverage
+
+# Source of truth docs (local only)
+PROJECT.md
+PROGRESS.md
+TDD.md
+
+test-wireframes
