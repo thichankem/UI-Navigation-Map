@@ -66,7 +66,7 @@ export function AboutModal({ dark, onClose }: AboutModalProps) {
             the mockup, and the frontend.
           </p>
           <p style={{ margin: 0 }}>
-            DesignFlow is where you lay those screens out, draw the flows
+            UI Navigation Map is where you lay those screens out, draw the flows
             between them, and export the whole thing as code.
           </p>
         </div>
@@ -84,7 +84,7 @@ export function AboutModal({ dark, onClose }: AboutModalProps) {
           }}
         >
           <span>MIT License</span>
-          <span>designflow.cc</span>
+          <span>UI Navigation Map</span>
         </div>
       </div>
     </div>
