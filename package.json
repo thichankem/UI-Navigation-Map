@@ -1,11 +1,11 @@
 {
-  "name": "designflow",
+  "name": "ui-navigation-map",
   "version": "0.3.1",
   "description": "An open-source wireframe canvas for developers. Design screens, map flows, then ship real code.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "designflow": "./dist/cli.js"
+    "ui-navigation-map": "./dist/cli.js"
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -43,9 +43,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/jason301c/designflow"
+    "url": "https://github.com/thichankem/UI-Navigation-Map"
   },
-  "homepage": "https://designflow.cc",
+  "homepage": "https://github.com/thichankem/UI-Navigation-Map",
   "dependencies": {
     "@tailwindcss/vite": "^4.2.0",
     "@xyflow/react": "^12.10.1",
