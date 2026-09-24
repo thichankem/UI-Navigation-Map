@@ -3,10 +3,10 @@ import { ReactFlowProvider } from "@xyflow/react"
 import { Canvas } from "./Canvas"
 import { Viewer } from "./Viewer"
 import { DEFAULT_CANVAS_SETTINGS } from "../types"
-import type { DesignFlowConfig, EdgeConfig, CanvasSettings } from "../types"
+import type { NavigationMapConfig, EdgeConfig, CanvasSettings } from "../types"
 import "@xyflow/react/dist/style.css"
 
-const DF_SETTINGS_KEY = "df-appearance"
+const DF_SETTINGS_KEY = "unm-appearance"
 
 function getInitialSettings(): CanvasSettings {
   try {
@@ -24,7 +24,7 @@ function getInitialSettings(): CanvasSettings {
 }
 
 interface AppProps {
-  config: DesignFlowConfig
+  config: NavigationMapConfig
   screens: Record<string, React.ComponentType>
   inferredEdges?: EdgeConfig[]
   exportMode?: boolean
@@ -38,7 +38,7 @@ export function App({ config, screens, inferredEdges, exportMode }: AppProps) {
   )
 
   useEffect(() => {
-    document.title = config.name ? `${config.name} — DesignFlow` : "DesignFlow"
+    document.title = config.name ? `${config.name} — UI Navigation Map` : "UI Navigation Map"
   }, [config.name])
 
   const viewingConfig = viewingScreen ? config.screens[viewingScreen] : null
