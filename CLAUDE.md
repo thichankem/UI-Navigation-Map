@@ -1,7 +1,7 @@
-# DesignFlow — CLAUDE.md
+# UI Navigation Map — CLAUDE.md
 
 ## What This Is
-An npm package (`designflow`) providing a Figma-like infinite canvas where every screen is a real React component. Users scaffold a `wireframes/` directory, write screens as `.tsx` files, define flows in `flows.ts`, and visualize everything on a pannable canvas with live thumbnails and navigation arrows.
+An npm package (`ui-navigation-map`) providing a Figma-like infinite canvas where every screen is a real React component. Users scaffold a `wireframes/` directory, write screens as `.tsx` files, define flows in `flows.ts`, and visualize everything on a pannable canvas with live thumbnails and navigation arrows.
 
 ## Development Approach: TDD
 Every feature follows Test-Driven Development:
@@ -24,11 +24,11 @@ src/
 ├── app/          # App.tsx, Canvas.tsx, ScreenNode.tsx, FlowEdge.tsx, Viewer.tsx, Toolbar.tsx,
 │                 # LogoBadge.tsx, AboutModal.tsx, Toast.tsx, ExportBanner.tsx,
 │                 # ColorPicker.tsx, ViewportSelector.tsx, ColorSchemeToggle.tsx,
-│                 # icons.tsx, share.ts, export-png.ts, dev-server-api.ts
+│                 # icons.tsx, export-png.ts, dev-server-api.ts, auto-layout.ts
 ├── runtime/      # vite-plugin.ts, theme-loader.ts, screen-scanner.ts, flow-writer.ts,
 │                 # flow-reader.ts, default-theme.ts, paths.ts
 └── types/        # index.ts (all shared types + constants)
-templates/        # Scaffolding for `designflow init` (screens/, flows.ts, theme,
+templates/        # Scaffolding for `ui-navigation-map init` (screens/, flows.ts, theme,
                   # AGENTS.md — canonical agent conventions, mirrored at init to
                   # CLAUDE.md, GEMINI.md, .cursor/, .github/, .windsurf/, .clinerules, .roo/)
 tests/
@@ -42,40 +42,40 @@ tests/
 
 ### Screens
 - Default-exported React components, zero required props
-- `data-df-navigate="screenId"` marks navigation triggers → rendered as flow arrows
+- `data-unm-navigate="screenId"` marks navigation triggers → rendered as flow arrows
 - Screen IDs are **lowercase filenames** without `.tsx` (scanner auto-lowercases)
-- Style with `var(--df-*)` tokens or Tailwind classes — never hardcode colors
+- Style with `var(--unm-*)` tokens or Tailwind classes — never hardcode colors
 
 ### Flows
-- `flows.ts` defines `DesignFlowConfig`: screens map + edges array
-- Positions persist — dragging on canvas writes back via `/__designflow/update-positions`
+- `flows.ts` defines `NavigationMapConfig`: screens map + edges array
+- Positions persist — dragging on canvas writes back via `/__unm/update-positions`
 
 ### Theming
-- `designflow.theme.ts` → CSS custom properties via Vite plugin (no in-app theme editor)
+- `unm.theme.ts` → CSS custom properties via Vite plugin (no in-app theme editor)
 - `DEFAULT_THEME` lives in `src/runtime/default-theme.ts` (shared by init CLI and tests)
-- Dark mode: `[data-df-color-scheme="dark"]` selector overrides `--df-*` vars per-screen
+- Dark mode: `[data-unm-color-scheme="dark"]` selector overrides `--unm-*` vars per-screen
 
 ### Canvas
 - React Flow v12 (`@xyflow/react`) powers the canvas
 - Custom nodes (`ScreenNode`), custom edges (`FlowEdge`)
 - Thumbnails use `transform: scale(MAX_DIM / Math.max(w, h))`
 - Handles: left target + right source (left-to-right flow)
-- Virtual modules: `virtual:designflow/screens`, `virtual:designflow/theme`, `virtual:designflow/inferred-edges`
+- Virtual modules: `virtual:unm/screens`, `virtual:unm/theme`, `virtual:unm/inferred-edges`
 
 ### Tailwind v4
 - Auto-detects `styles.css` in wireframes dir → injects `<link>` in dev HTML
-- `@theme inline` block maps `--color-*`/`--radius-*`/etc. → `var(--df-*)` refs
+- `@theme inline` block maps `--color-*`/`--radius-*`/etc. → `var(--unm-*)` refs
 - Must use `@theme inline` (not plain `@theme`) to avoid `@property` breaking dark mode cascade
 
 ### PNG Export
 - `html-to-image@1.11.11` (pinned version)
 - Canvas export: captures `.react-flow__viewport` at 2048x1536 via `getViewportForBounds`
-- Screen export: captures `[data-df-screen-content]` at full resolution
+- Screen export: captures `[data-unm-screen-content]` at full resolution
 
 ## Tech Stack
 - React 19, React Flow v12, Vite 7, tsup 8, TypeScript 5.9
 - Testing: Vitest 4, @testing-library/react, Playwright
-- CLI: cac | Styling: Tailwind 4 + CSS custom properties (`--df-*`)
+- CLI: cac | Styling: Tailwind 4 + CSS custom properties (`--unm-*`)
 
 ## Commands
 ```bash
