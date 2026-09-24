@@ -10,3 +10,7 @@ PROGRESS.md
 TDD.md
 
 test-wireframes
+
+# Dev server logs
+*.log
+*.err.log
