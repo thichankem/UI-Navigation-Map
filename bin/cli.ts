@@ -4,7 +4,7 @@ import { runInit } from "../src/cli/init"
 import { runDev } from "../src/cli/dev"
 import { runExport } from "../src/cli/export"
 
-const cli = cac("designflow")
+const cli = cac("ui-navigation-map")
 
 cli
   .command("init [dir]", "Scaffold wireframes directory with example screens")
@@ -17,11 +17,11 @@ cli
       await runInit({ dir: targetDir, tailwind: options.tailwind, name: options.name })
       const screenDir = `${targetDir}/screens/`
       console.log()
-      console.log(`  DesignFlow scaffolded in ${targetDir}/`)
+      console.log(`  UI Navigation Map scaffolded in ${targetDir}/`)
       console.log()
       console.log("  Next steps:")
       console.log()
-      console.log("    npx designflow dev")
+      console.log("    npx ui-navigation-map dev")
       console.log()
       console.log(`  This opens an infinite canvas at http://localhost:4800`)
       console.log(`  showing your screens as live React thumbnails.`)
@@ -30,12 +30,11 @@ cli
       console.log(`    1. Create a .tsx file in ${screenDir}`)
       console.log(`    2. Register it in ${targetDir}/flows.ts`)
       console.log()
-      console.log(`  Edit ${targetDir}/designflow.theme.ts to customize colors, spacing, and more.`)
+      console.log(`  Edit ${targetDir}/unm.theme.ts to customize colors, spacing, and more.`)
       if (options.tailwind) {
         console.log(`  Tailwind v4 is active — use classes like bg-primary, text-text, p-md.`)
       }
       console.log()
-      console.log(`  Docs: https://designflow.cc`)
       console.log(`  AI conventions: ${targetDir}/AGENTS.md`)
       console.log(`  (also mirrored to CLAUDE.md, GEMINI.md, Cursor, Copilot, Windsurf, Cline, Roo Code)`)
       console.log()
@@ -61,7 +60,7 @@ cli
 cli
   .command("export", "Export static HTML file")
   .option("--dir <dir>", "Wireframes directory", { default: "./wireframes" })
-  .option("--output <output>", "Output file path", { default: "./designflow.html" })
+  .option("--output <output>", "Output file path", { default: "./ui-navigation-map.html" })
   .action(async (options) => {
     try {
       await runExport({ dir: options.dir, output: options.output })
