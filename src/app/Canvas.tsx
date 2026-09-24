@@ -6,13 +6,14 @@ import { FlowEdge } from "./FlowEdge"
 import { Toolbar } from "./Toolbar"
 import { LogoBadge } from "./LogoBadge"
 import { ExportBanner } from "./ExportBanner"
-import type { DesignFlowConfig, EdgeConfig, CanvasSettings } from "../types"
+import { computeAutoLayout } from "./auto-layout"
+import type { NavigationMapConfig, EdgeConfig, CanvasSettings } from "../types"
 
 const nodeTypes = { screen: ScreenNode }
 const edgeTypes = { flow: FlowEdge }
 
 interface CanvasProps {
-  config: DesignFlowConfig
+  config: NavigationMapConfig
   screens?: Record<string, ComponentType>
   onScreenSelect: (screenId: string) => void
   focusNodeId?: string | null
@@ -24,7 +25,7 @@ interface CanvasProps {
 }
 
 function configToNodes(
-  config: DesignFlowConfig,
+  config: NavigationMapConfig,
   onScreenSelect: (id: string) => void,
   screens?: Record<string, ComponentType>,
   accentColor?: string,
@@ -78,7 +79,7 @@ function pickHandles(
 }
 
 function getPositions(
-  config: DesignFlowConfig,
+  config: NavigationMapConfig,
   nodeOverrides?: Record<string, { x: number; y: number }>,
 ): Record<string, { x: number; y: number }> {
   const positions: Record<string, { x: number; y: number }> = {}
@@ -89,7 +90,7 @@ function getPositions(
 }
 
 function configToEdges(
-  config: DesignFlowConfig,
+  config: NavigationMapConfig,
   inferredEdges?: EdgeConfig[],
   settings?: CanvasSettings,
   nodePositions?: Record<string, { x: number; y: number }>,
@@ -181,7 +182,7 @@ export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredE
   }, [settings?.accentColor, settings?.lineStyle, settings?.appearance])
 
   const onNodeDragStop = useCallback((_event: React.MouseEvent, node: Node) => {
-    fetch("/__designflow/update-positions", {
+    fetch("/__unm/update-positions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -198,6 +199,25 @@ export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredE
       return currentNodes
     })
   }, [config, inferredEdges, settings, setEdges, setNodes])
+
+  const { fitView } = useReactFlow()
+
+  const handleAutoArrange = useCallback(() => {
+    const positions = computeAutoLayout(config, inferredEdges)
+    setNodes((currentNodes) => {
+      const next = currentNodes.map((n) =>
+        positions[n.id] ? { ...n, position: positions[n.id] } : n
+      )
+      setEdges(configToEdges(config, inferredEdges, settings, positions))
+      return next
+    })
+    fetch("/__unm/update-positions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ positions }),
+    })
+    setTimeout(() => fitView({ duration: 300, padding: 0.2 }), 50)
+  }, [config, inferredEdges, settings, setNodes, setEdges, fitView])
 
   const isDarkCanvas = settings?.appearance === "dark"
 
@@ -227,7 +247,7 @@ export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredE
             style={{ opacity: settings.backgroundStyle === "dots" ? 0.7 : 0.4 }}
           />
         )}
-        <Toolbar settings={settings} onSettingsChange={exportMode ? undefined : onSettingsChange} projectName={projectName} />
+        <Toolbar settings={settings} onSettingsChange={exportMode ? undefined : onSettingsChange} onAutoArrange={exportMode ? undefined : handleAutoArrange} projectName={projectName} />
         <LogoBadge dark={isDarkCanvas} exportMode={exportMode} />
         {exportMode && <ExportBanner dark={isDarkCanvas} />}
       </ReactFlow>
