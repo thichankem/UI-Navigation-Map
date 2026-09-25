@@ -53,17 +53,17 @@ export async function exportCanvasPng(
     },
   })
 
-  const prefix = options?.projectName ? slugify(options.projectName) : "designflow"
+  const prefix = options?.projectName ? slugify(options.projectName) : "ui-navigation-map"
   downloadDataUrl(dataUrl, `${prefix}-canvas.png`)
 }
 
 export async function exportScreenPng(screenId: string, projectName?: string) {
   const wrapper = document.querySelector<HTMLElement>(
-    `[data-df-screen-id="${screenId}"]`,
+    `[data-unm-screen-id="${screenId}"]`,
   )
   if (!wrapper) return
 
-  const contentEl = wrapper.querySelector<HTMLElement>("[data-df-screen-content]")
+  const contentEl = wrapper.querySelector<HTMLElement>("[data-unm-screen-content]")
   if (!contentEl) return
 
   const width = parseInt(contentEl.style.width)
@@ -77,6 +77,6 @@ export async function exportScreenPng(screenId: string, projectName?: string) {
     },
   })
 
-  const prefix = projectName ? slugify(projectName) : "designflow"
+  const prefix = projectName ? slugify(projectName) : "ui-navigation-map"
   downloadDataUrl(dataUrl, `${prefix}-${screenId}.png`)
 }
