@@ -9,9 +9,9 @@ function post(path: string, payload: unknown): void {
 }
 
 export function updateScreenViewport(screenId: string, viewport: Viewport): void {
-  post("/__designflow/update-viewport", { screenId, viewport })
+  post("/__unm/update-viewport", { screenId, viewport })
 }
 
 export function updateScreenColor(screenId: string, color: string): void {
-  post("/__designflow/update-color", { screenId, color })
+  post("/__unm/update-color", { screenId, color })
 }
