@@ -139,17 +139,13 @@ export default config
 
 ## AI Agent Support
 
-`init` automatically mirrors conventions from `AGENTS.md` across modern AI coding agents:
+`init` automatically scaffolds conventions for modern AI coding agents:
 
 | Agent / Environment | Convention Config |
 |---|---|
-| **Codex, Antigravity, Amp, Zed, Jules** | `AGENTS.md` |
 | **Claude Code** | `CLAUDE.md` |
-| **Gemini CLI** | `GEMINI.md` |
-| **Cursor** | `.cursor/rules/ui-navigation-map.mdc` |
-| **GitHub Copilot** | `.github/copilot-instructions.md` |
-| **Windsurf** | `.windsurf/rules/ui-navigation-map.md` |
-| **Cline & Roo Code** | `.clinerules` / `.roo/rules/` |
+| **Codex** | `AGENTS.md` |
+| **Antigravity** | `AGENTS.md` |
 
 ---
 
