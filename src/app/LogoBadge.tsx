@@ -1,14 +1,30 @@
 import { useState } from "react"
 import { AboutModal } from "./AboutModal"
 import { Toast, type ToastData } from "./Toast"
+import { GitHubIcon, DownloadIcon } from "./icons"
 
+/**
+ * Props for the LogoBadge component.
+ */
 interface LogoBadgeProps {
+  /** Whether the canvas is rendered in dark mode */
   dark?: boolean
+  /** Whether running inside static HTML export */
   exportMode?: boolean
 }
 
+/** Milliseconds before export status toast automatically dismisses */
 const TOAST_DURATION_MS = 5000
 
+/**
+ * LogoBadge renders the project brand pill at the top-left of the canvas.
+ *
+ * Includes:
+ * - Brand logo linking to repository
+ * - "About" button opening modal with project overview
+ * - "Contribute" link to GitHub
+ * - One-click static standalone HTML export trigger
+ */
 export function LogoBadge({ dark, exportMode }: LogoBadgeProps) {
   const [aboutOpen, setAboutOpen] = useState(false)
   const [exporting, setExporting] = useState(false)
@@ -19,13 +35,16 @@ export function LogoBadge({ dark, exportMode }: LogoBadgeProps) {
     setTimeout(() => setToast(null), TOAST_DURATION_MS)
   }
 
+  // Calls dev server static export endpoint
   const handleExport = async () => {
     setExporting(true)
     setToast(null)
     try {
       const res = await fetch("/__unm/export", { method: "POST" })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Export failed")
+      if (!res.ok) {
+        throw new Error(data.error || "Export failed")
+      }
       showToast(`Exported to ${data.path}`, "success")
     } catch (err: any) {
       showToast(err.message || "Export failed", "error")
@@ -34,10 +53,10 @@ export function LogoBadge({ dark, exportMode }: LogoBadgeProps) {
     }
   }
 
-  const pillBg = dark ? "#1e1e1e" : "#fff"
-  const pillBorder = `1px solid ${dark ? "#333" : "#e2e8f0"}`
+  const pillBg = dark ? "#1e1e1e" : "#ffffff"
+  const pillBorder = `1px solid ${dark ? "#333333" : "#e2e8f0"}`
   const pillColor = dark ? "#e2e8f0" : "#334155"
-  const dividerColor = dark ? "#444" : "#e2e8f0"
+  const dividerColor = dark ? "#444444" : "#e2e8f0"
 
   const actionButtonStyle = (busy: boolean): React.CSSProperties => ({
     background: "transparent",
@@ -52,12 +71,15 @@ export function LogoBadge({ dark, exportMode }: LogoBadgeProps) {
     color: pillColor,
     cursor: busy ? "wait" : "pointer",
     opacity: busy ? 0.5 : 1,
+    transition: "opacity 0.15s ease",
   })
 
   return (
     <>
       <div
         data-testid="logo-badge"
+        role="navigation"
+        aria-label="Application brand and links"
         style={{
           position: "absolute",
           top: 12,
@@ -74,19 +96,39 @@ export function LogoBadge({ dark, exportMode }: LogoBadgeProps) {
           letterSpacing: "-0.01em",
           color: pillColor,
           userSelect: "none",
+          boxShadow: dark
+            ? "0 4px 16px rgba(0, 0, 0, 0.4)"
+            : "0 4px 16px rgba(0, 0, 0, 0.08)",
         }}
       >
+        {/* Brand link */}
         <a
           href="https://github.com/thichankem/UI-Navigation-Map"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ textDecoration: "none", color: "inherit", display: "flex", alignItems: "center" }}
+          style={{
+            textDecoration: "none",
+            color: "inherit",
+            display: "flex",
+            alignItems: "center",
+          }}
         >
-          <span style={{ opacity: 0.5, marginRight: 1 }}>ui-navigation</span>
+          <span style={{ opacity: 0.55, marginRight: 1 }}>ui-navigation</span>
           <span>map</span>
         </a>
-        <div style={{ width: 1, height: 16, background: dividerColor, margin: "0 8px" }} />
+
+        <div
+          style={{
+            width: 1,
+            height: 16,
+            background: dividerColor,
+            margin: "0 8px",
+          }}
+        />
+
+        {/* About Modal Button */}
         <button
+          type="button"
           data-testid="about-button"
           onClick={() => setAboutOpen(true)}
           style={{
@@ -105,7 +147,10 @@ export function LogoBadge({ dark, exportMode }: LogoBadgeProps) {
         >
           About
         </button>
+
         <div style={{ width: 1, height: 16, background: dividerColor }} />
+
+        {/* Contribute via GitHub */}
         <a
           href="https://github.com/thichankem/UI-Navigation-Map"
           target="_blank"
@@ -123,32 +168,32 @@ export function LogoBadge({ dark, exportMode }: LogoBadgeProps) {
             textDecoration: "none",
           }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-          </svg>
+          <GitHubIcon />
           Contribute
         </a>
+
+        {/* HTML Export Button (hidden in static export) */}
         {!exportMode && (
           <>
             <div style={{ width: 1, height: 16, background: dividerColor }} />
             <button
+              type="button"
               data-testid="export-html"
               disabled={exporting}
               onClick={handleExport}
               style={actionButtonStyle(exporting)}
+              title="Export single-file static HTML bundle"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
+              <DownloadIcon />
               {exporting ? "Exporting..." : "Export"}
             </button>
           </>
         )}
       </div>
 
-      {aboutOpen && <AboutModal dark={dark} onClose={() => setAboutOpen(false)} />}
+      {aboutOpen && (
+        <AboutModal dark={dark} onClose={() => setAboutOpen(false)} />
+      )}
 
       {toast && <Toast toast={toast} dark={dark} />}
     </>

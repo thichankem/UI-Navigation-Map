@@ -123,19 +123,6 @@ export async function runDev(options: DevOptions): Promise<void> {
         },
       },
     ],
-    // Pre-bundle CJS deps that @xyflow/react and react need
-    optimizeDeps: {
-      include: [
-        "react",
-        "react-dom",
-        "react-dom/client",
-        "react/jsx-runtime",
-        "react/jsx-dev-runtime",
-        "@xyflow/react",
-        "@xyflow/system",
-        "use-sync-external-store/shim/with-selector",
-      ],
-    },
     server: {
       port,
       fs: {

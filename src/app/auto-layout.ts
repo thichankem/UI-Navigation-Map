@@ -1,22 +1,34 @@
 import type { NavigationMapConfig, EdgeConfig, Viewport } from "../types"
 import { getScreenResolution } from "../types"
 
+/** Maximum thumbnail dimension in pixels on the canvas */
 const THUMBNAIL_MAX_DIM = 420
+
+/** Approximate height of the node's top control pill bar */
 const PILL_BAR_HEIGHT = 46
+
+/** Inner canvas node padding */
 const NODE_PADDING = 8
+
+/** Horizontal separation between layout columns */
 const COLUMN_GAP = 160
+
+/** Vertical separation between rows within the same layer */
 const ROW_GAP = 80
 
-interface Size {
+interface NodeDimension {
   width: number
   height: number
 }
 
 /**
- * Approximates the on-canvas size of a screen node (thumbnail + pill bar),
- * matching the scaling used by ScreenNode.
+ * Calculates the bounding box of a screen node on the canvas,
+ * accounting for thumbnail scaling and the controls pill bar.
+ *
+ * @param viewport - Optional device viewport preset
+ * @returns Width and height of the rendered node card
  */
-function getNodeSize(viewport?: Viewport): Size {
+function getNodeSize(viewport?: Viewport): NodeDimension {
   const { width, height } = getScreenResolution(viewport)
   const scale = THUMBNAIL_MAX_DIM / Math.max(width, height)
   return {
@@ -26,86 +38,109 @@ function getNodeSize(viewport?: Viewport): Size {
 }
 
 /**
- * Computes a tidy layered layout for all screens, flowing left-to-right
- * along the directed edges. Explicit edges (the curated flow) drive the
- * layering; inferred edges are only used when no explicit edges exist,
- * since inferred edges often include back-navigation that would push
- * entry screens to the far right. Cycles are tolerated (layers saturate
- * after N iterations).
+ * Computes a clean, aesthetic horizontal DAG layout for wireframe screens.
  *
- * Returns a map of screenId → absolute position.
+ * Algorithmic steps:
+ * 1. Filter out invalid/self edges.
+ * 2. Prioritize explicit user-defined edges; fallback to inferred navigation edges.
+ * 3. Calculate topological layer assignment via iterated longest-path relaxation.
+ * 4. Cluster screens by layer and compute cumulative horizontal offsets.
+ * 5. Vertically center all rows within each column around y = 0.
+ *
+ * @param config - Current navigation map configuration
+ * @param inferredEdges - Automatically detected code navigation links
+ * @returns Map of screenId to its target { x, y } coordinate
  */
 export function computeAutoLayout(
   config: NavigationMapConfig,
   inferredEdges: EdgeConfig[] = [],
 ): Record<string, { x: number; y: number }> {
-  const ids = Object.keys(config.screens)
-  if (ids.length === 0) return {}
+  const screenIds = Object.keys(config.screens)
+  if (screenIds.length === 0) {
+    return {}
+  }
 
-  const collect = (list: EdgeConfig[]): Array<{ from: string; to: string }> =>
+  // Filter valid directed edges between existing screens
+  const sanitizeEdges = (
+    list: EdgeConfig[],
+  ): Array<{ from: string; to: string }> =>
     list.filter(
       (edge) =>
         edge.from !== edge.to &&
-        config.screens[edge.from] &&
-        config.screens[edge.to],
+        Boolean(config.screens[edge.from]) &&
+        Boolean(config.screens[edge.to]),
     )
 
-  const explicitEdges = collect(config.edges ?? [])
-  const fallbackEdges = collect(inferredEdges)
-  const edges = explicitEdges.length > 0 ? explicitEdges : fallbackEdges
+  const explicitEdges = sanitizeEdges(config.edges ?? [])
+  const fallbackEdges = sanitizeEdges(inferredEdges)
+  // Curated explicit flows dictate layout; inferred edges provide fallback
+  const activeEdges = explicitEdges.length > 0 ? explicitEdges : fallbackEdges
 
-  // Longest-path layering, iterated until stable (capped to survive cycles).
-  const layer: Record<string, number> = {}
-  for (const id of ids) layer[id] = 0
-  for (let i = 0; i < ids.length; i++) {
-    let changed = false
-    for (const edge of edges) {
-      const next = layer[edge.from] + 1
-      if (next > layer[edge.to]) {
-        layer[edge.to] = next
-        changed = true
+  // Assign layers via longest path (bounded by node count to tolerate cycles)
+  const layerMap: Record<string, number> = {}
+  for (const id of screenIds) {
+    layerMap[id] = 0
+  }
+
+  for (let iteration = 0; iteration < screenIds.length; iteration++) {
+    let hasChanges = false
+    for (const edge of activeEdges) {
+      const candidateLayer = layerMap[edge.from] + 1
+      if (candidateLayer > layerMap[edge.to]) {
+        layerMap[edge.to] = candidateLayer
+        hasChanges = true
       }
     }
-    if (!changed) break
+    if (!hasChanges) {
+      break
+    }
   }
 
-  // Group node ids by layer, preserving config insertion order.
-  const groups: string[][] = []
-  for (const id of ids) {
-    const l = layer[id]
-    if (!groups[l]) groups[l] = []
-    groups[l].push(id)
+  // Partition screen IDs into layers, maintaining insertion order
+  const layerGroups: string[][] = []
+  for (const id of screenIds) {
+    const l = layerMap[id]
+    if (!layerGroups[l]) {
+      layerGroups[l] = []
+    }
+    layerGroups[l].push(id)
   }
 
-  // Column x-offsets accumulate the widest node in each preceding column.
+  // Calculate cumulative X offsets for each column based on max column width
   const xOffsets: number[] = []
-  let acc = 0
-  for (let l = 0; l < groups.length; l++) {
-    const group = groups[l]
+  let cumulativeX = 0
+  for (let l = 0; l < layerGroups.length; l++) {
+    const group = layerGroups[l]
     if (!group) continue
-    xOffsets[l] = acc
-    const columnWidth = Math.max(...group.map((id) => getNodeSize(config.screens[id].viewport).width))
-    acc += columnWidth + COLUMN_GAP
+    xOffsets[l] = cumulativeX
+    const colWidth = Math.max(
+      ...group.map((id) => getNodeSize(config.screens[id].viewport).width),
+    )
+    cumulativeX += colWidth + COLUMN_GAP
   }
 
-  const layout: Record<string, { x: number; y: number }> = {}
+  // Assign final coordinates centered vertically
+  const result: Record<string, { x: number; y: number }> = {}
 
-  for (let l = 0; l < groups.length; l++) {
-    const group = groups[l]
+  for (let l = 0; l < layerGroups.length; l++) {
+    const group = layerGroups[l]
     if (!group) continue
-    const heights = group.map((id) => getNodeSize(config.screens[id].viewport).height)
+
+    const heights = group.map(
+      (id) => getNodeSize(config.screens[id].viewport).height,
+    )
     const maxHeight = Math.max(...heights)
     const rowHeight = maxHeight + ROW_GAP
-    const totalHeight = (group.length - 1) * rowHeight + maxHeight
-    const startY = -totalHeight / 2
+    const totalGroupHeight = (group.length - 1) * rowHeight + maxHeight
+    const startY = -totalGroupHeight / 2
 
-    group.forEach((id, i) => {
-      layout[id] = {
+    group.forEach((id, index) => {
+      result[id] = {
         x: Math.round(xOffsets[l]),
-        y: Math.round(startY + i * rowHeight),
+        y: Math.round(startY + index * rowHeight),
       }
     })
   }
 
-  return layout
+  return result
 }

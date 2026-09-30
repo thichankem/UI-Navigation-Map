@@ -2,9 +2,17 @@ import { toPng } from "html-to-image"
 import { getNodesBounds, getViewportForBounds } from "@xyflow/react"
 import type { Node } from "@xyflow/react"
 
+/** Target resolution dimensions for full canvas high-res snapshot */
 const CANVAS_WIDTH = 2048
 const CANVAS_HEIGHT = 1536
 
+/**
+ * Transforms an arbitrary string (e.g. project name) into a safe,
+ * lowercased, hyphen-separated filename slug.
+ *
+ * @param name - Raw input string
+ * @returns Clean slugified string
+ */
 export function slugify(name: string): string {
   return name
     .toLowerCase()
@@ -12,22 +20,40 @@ export function slugify(name: string): string {
     .replace(/^-+|-+$/g, "")
 }
 
+/**
+ * Options for exporting the canvas view to PNG.
+ */
 export interface ExportCanvasOptions {
+  /** Canvas background fill color (defaults to '#ffffff') */
   backgroundColor?: string
+  /** Project name used as filename prefix */
   projectName?: string
 }
 
-function downloadDataUrl(dataUrl: string, filename: string) {
-  const a = document.createElement("a")
-  a.href = dataUrl
-  a.download = filename
-  a.click()
+/**
+ * Helper to trigger browser download of a base64 or blob data URL.
+ *
+ * @param dataUrl - Base64 image data URL
+ * @param filename - Target filename for download
+ */
+function downloadDataUrl(dataUrl: string, filename: string): void {
+  const anchor = document.createElement("a")
+  anchor.href = dataUrl
+  anchor.download = filename
+  anchor.click()
 }
 
+/**
+ * Captures the entire React Flow viewport including all positioned screen nodes
+ * and flow arrows, rendering a high-resolution PNG image.
+ *
+ * @param getNodes - Function returning all active nodes on canvas
+ * @param options - Export options (background color, project prefix)
+ */
 export async function exportCanvasPng(
   getNodes: () => Node[],
   options?: ExportCanvasOptions,
-) {
+): Promise<void> {
   const viewportEl = document.querySelector<HTMLElement>(".react-flow__viewport")
   if (!viewportEl) return
 
@@ -57,7 +83,17 @@ export async function exportCanvasPng(
   downloadDataUrl(dataUrl, `${prefix}-canvas.png`)
 }
 
-export async function exportScreenPng(screenId: string, projectName?: string) {
+/**
+ * Captures an individual screen at 100% full native resolution (unscaled),
+ * suitable for presentations, design docs, or design reviews.
+ *
+ * @param screenId - Identifier of the screen to snapshot
+ * @param projectName - Optional project name for filename prefix
+ */
+export async function exportScreenPng(
+  screenId: string,
+  projectName?: string,
+): Promise<void> {
   const wrapper = document.querySelector<HTMLElement>(
     `[data-unm-screen-id="${screenId}"]`,
   )
@@ -66,8 +102,8 @@ export async function exportScreenPng(screenId: string, projectName?: string) {
   const contentEl = wrapper.querySelector<HTMLElement>("[data-unm-screen-content]")
   if (!contentEl) return
 
-  const width = parseInt(contentEl.style.width)
-  const height = parseInt(contentEl.style.height)
+  const width = parseInt(contentEl.style.width, 10)
+  const height = parseInt(contentEl.style.height, 10)
 
   const dataUrl = await toPng(contentEl, {
     width,

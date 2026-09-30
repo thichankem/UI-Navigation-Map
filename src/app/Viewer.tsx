@@ -6,67 +6,119 @@ import { updateScreenViewport, updateScreenColor } from "./dev-server-api"
 import { ViewportSelector } from "./ViewportSelector"
 import { ColorPicker } from "./ColorPicker"
 import { ColorSchemeToggle } from "./ColorSchemeToggle"
+import { CloseIcon } from "./icons"
 
+/**
+ * Props for the Viewer modal component.
+ */
 interface ViewerProps {
+  /** Identifier of the currently focused screen */
   screenId: string
+  /** Human-readable title of the screen */
   screenTitle: string
+  /** The React component implementing the screen */
   component: ComponentType
+  /** Callback fired to close the viewer overlay */
   onClose: () => void
+  /** Callback fired when a `data-unm-navigate` trigger is clicked */
   onNavigate?: (screenId: string) => void
+  /** Global canvas accent color */
   accentColor?: string
+  /** Screen-specific accent color override */
   color?: string
+  /** Screen-specific device viewport override */
   viewport?: Viewport
+  /** Project name for export files */
   projectName?: string
+  /** Whether the viewer is running in static export mode */
   exportMode?: boolean
 }
 
-export function Viewer({ screenId, screenTitle, component: ScreenComponent, onClose, onNavigate, accentColor, color, viewport, projectName, exportMode }: ViewerProps) {
-  const [activeViewport, setActiveViewport] = useState<Viewport>(viewport ?? "desktop")
-  const [activeColorScheme, setActiveColorScheme] = useState<ColorScheme>("light")
+/**
+ * Viewer renders a full-screen, live interactive presentation mode.
+ *
+ * Key features:
+ * - Real React runtime: useState, forms, modals, dropdowns work natively.
+ * - Device viewport simulation (Desktop 1440x900, Tablet 768x1024, Mobile 390x844).
+ * - Automatic flow navigation: clicking any element with `data-unm-navigate="target"`
+ *   seamlessly transitions to the target screen.
+ * - Keyboard navigation: Press `Escape` to return to the infinite canvas.
+ */
+export function Viewer({
+  screenId,
+  screenTitle,
+  component: ScreenComponent,
+  onClose,
+  onNavigate,
+  accentColor,
+  color,
+  viewport,
+  projectName,
+  exportMode,
+}: ViewerProps) {
+  const [activeViewport, setActiveViewport] = useState<Viewport>(
+    viewport ?? "desktop",
+  )
+  const [activeColorScheme, setActiveColorScheme] =
+    useState<ColorScheme>("light")
   const [activeColor, setActiveColor] = useState<string | undefined>(color)
   const contentRef = useRef<HTMLDivElement>(null)
 
+  // Listen for Escape key to close viewer
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose()
+      if (e.key === "Escape") {
+        onClose()
+      }
     }
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
   }, [onClose])
 
+  // Intercept clicks on [data-unm-navigate] elements for interactive screen-to-screen routing
   useEffect(() => {
     if (!onNavigate || !contentRef.current) return
-    const el = contentRef.current
+    const container = contentRef.current
+
     const handleClick = (e: MouseEvent) => {
-      const target = (e.target as HTMLElement).closest<HTMLElement>("[data-unm-navigate]")
-      if (target) {
+      const target = (e.target as HTMLElement).closest<HTMLElement>(
+        "[data-unm-navigate]",
+      )
+      if (target && target.dataset.unmNavigate) {
         e.preventDefault()
-        onNavigate(target.dataset.unmNavigate!)
+        onNavigate(target.dataset.unmNavigate)
       }
     }
-    el.addEventListener("click", handleClick)
-    return () => el.removeEventListener("click", handleClick)
+
+    container.addEventListener("click", handleClick)
+    return () => container.removeEventListener("click", handleClick)
   }, [onNavigate])
 
+  // Handle device viewport changes
   const handleViewportChange = (vp: Viewport) => {
     setActiveViewport(vp)
     updateScreenViewport(screenId, vp)
   }
 
+  // Handle color customization
   const handleColorChange = (c: string) => {
     setActiveColor(c)
     updateScreenColor(screenId, c)
   }
 
   const pillBg = activeColor ?? accentColor
-  const hasPillColor = !!pillBg
-  const pillTextColor = hasPillColor ? "#fff" : "#334155"
-  const dividerColor = hasPillColor ? "rgba(255,255,255,0.3)" : "#e2e8f0"
+  const hasPillColor = Boolean(pillBg)
+  const pillTextColor = hasPillColor ? "#ffffff" : "#334155"
+  const dividerColor = hasPillColor ? "rgba(255, 255, 255, 0.3)" : "#e2e8f0"
   const isDark = activeColorScheme === "dark"
-  const { width: vpWidth, height: vpHeight } = getScreenResolution(activeViewport)
+  const { width: vpWidth, height: vpHeight } =
+    getScreenResolution(activeViewport)
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${screenTitle} preview`}
       data-testid="viewer-overlay"
       style={{
         position: "fixed",
@@ -75,8 +127,8 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
         background: "rgba(0, 0, 0, 0.5)",
       }}
     >
-      {/* Floating pill header */}
-      <div
+      {/* Floating Top Controls Pill */}
+      <header
         data-testid="viewer-pill"
         style={{
           position: "absolute",
@@ -86,20 +138,30 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
           zIndex: 60,
           display: "flex",
           alignItems: "center",
-          gap: "6px",
+          gap: 6,
           padding: "6px 10px 6px 12px",
-          background: hasPillColor ? pillBg! : "rgba(255, 255, 255, 0.95)",
+          background: hasPillColor ? pillBg : "rgba(255, 255, 255, 0.95)",
           backdropFilter: "blur(8px)",
           border: hasPillColor ? "none" : "1px solid #e2e8f0",
           borderRadius: 9999,
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
         }}
       >
-        {/* Title */}
-        <h2 style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: hasPillColor ? "#fff" : "#0f172a", whiteSpace: "nowrap" }}>
+        {/* Screen title */}
+        <h2
+          style={{
+            margin: 0,
+            fontSize: 12,
+            fontWeight: 600,
+            color: hasPillColor ? "#ffffff" : "#0f172a",
+            whiteSpace: "nowrap",
+            letterSpacing: "-0.01em",
+          }}
+        >
           {screenTitle}
         </h2>
 
-        {/* Color picker + Viewport — hidden in export mode */}
+        {/* Color picker & Viewport switcher (hidden in export mode) */}
         {!exportMode && (
           <>
             <ColorPicker
@@ -111,7 +173,6 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
 
             <div style={{ width: 1, height: 16, background: dividerColor }} />
 
-            {/* Viewport selector */}
             <ViewportSelector
               value={activeViewport}
               onChange={handleViewportChange}
@@ -123,7 +184,7 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
           </>
         )}
 
-        {/* Dark mode toggle */}
+        {/* Light/Dark mode toggle */}
         <ColorSchemeToggle
           scheme={activeColorScheme}
           onChange={setActiveColorScheme}
@@ -134,11 +195,13 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
 
         <div style={{ width: 1, height: 16, background: dividerColor }} />
 
-        {/* Save/export button */}
+        {/* Export screen as PNG */}
         <button
+          type="button"
           data-testid="viewer-export-png"
           aria-label="Export screen as PNG"
           onClick={() => exportScreenPng(screenId, projectName)}
+          title="Export screen as PNG"
           style={{
             border: "none",
             background: "transparent",
@@ -147,6 +210,8 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
             fontSize: 12,
             lineHeight: 1,
             color: pillTextColor,
+            display: "flex",
+            alignItems: "center",
           }}
         >
           📷
@@ -154,29 +219,29 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
 
         <div style={{ width: 1, height: 16, background: dividerColor }} />
 
-        {/* Close button */}
+        {/* Close viewer button */}
         <button
+          type="button"
           onClick={onClose}
           aria-label="Close"
+          title="Close viewer (Esc)"
           style={{
-            background: "none",
+            background: "transparent",
             border: "none",
             cursor: "pointer",
-            padding: "4px",
+            padding: 4,
             display: "flex",
             alignItems: "center",
             color: hasPillColor ? "rgba(255,255,255,0.8)" : "#64748b",
+            transition: "opacity 0.15s ease",
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
+          <CloseIcon />
         </button>
-      </div>
+      </header>
 
-      {/* Screen content */}
-      <div
+      {/* Screen Presentation Container */}
+      <main
         style={{
           position: "absolute",
           inset: 0,
@@ -185,7 +250,7 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
           justifyContent: "center",
           alignItems: activeViewport === "desktop" ? "stretch" : "flex-start",
           paddingTop: activeViewport === "desktop" ? 0 : 56,
-          background: isDark ? "#0f172a" : "white",
+          background: isDark ? "#0f172a" : "#ffffff",
         }}
       >
         <div
@@ -194,16 +259,20 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
             width: activeViewport === "desktop" ? "100%" : `${vpWidth}px`,
             minHeight: activeViewport === "desktop" ? "100%" : `${vpHeight}px`,
             maxWidth: activeViewport === "desktop" ? undefined : `${vpWidth}px`,
-            background: isDark ? "#0f172a" : "white",
+            background: isDark ? "#0f172a" : "#ffffff",
           }}
           data-unm-color-scheme={activeColorScheme}
           className={isDark ? "dark" : ""}
         >
-          <div ref={contentRef} data-unm-screen-content style={{ colorScheme: activeColorScheme }}>
+          <div
+            ref={contentRef}
+            data-unm-screen-content
+            style={{ colorScheme: activeColorScheme }}
+          >
             <ScreenComponent key={screenId} />
           </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

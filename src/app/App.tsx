@@ -6,11 +6,16 @@ import { DEFAULT_CANVAS_SETTINGS } from "../types"
 import type { NavigationMapConfig, EdgeConfig, CanvasSettings } from "../types"
 import "@xyflow/react/dist/style.css"
 
-const DF_SETTINGS_KEY = "unm-appearance"
+/** Key used to store persistent canvas appearance settings in localStorage */
+const SETTINGS_STORAGE_KEY = "unm-appearance"
 
+/**
+ * Safely retrieves stored appearance settings from browser localStorage
+ * with graceful fallback to system defaults.
+ */
 function getInitialSettings(): CanvasSettings {
   try {
-    const stored = localStorage.getItem(DF_SETTINGS_KEY)
+    const stored = localStorage.getItem(SETTINGS_STORAGE_KEY)
     if (stored) {
       const parsed = JSON.parse(stored)
       if (parsed && typeof parsed === "object" && "appearance" in parsed) {
@@ -18,48 +23,87 @@ function getInitialSettings(): CanvasSettings {
       }
     }
   } catch {
-    // localStorage unavailable or invalid JSON
+    // localStorage unavailable, disabled, or contains malformed JSON
   }
   return { ...DEFAULT_CANVAS_SETTINGS }
 }
 
+/**
+ * Props for the root App component.
+ */
 interface AppProps {
+  /** Project navigation map configuration */
   config: NavigationMapConfig
+  /** Map of screen IDs to their React component implementations */
   screens: Record<string, React.ComponentType>
+  /** Inferred navigation edges scanned by the dev server */
   inferredEdges?: EdgeConfig[]
+  /** Flag indicating standalone static export distribution */
   exportMode?: boolean
 }
 
-export function App({ config, screens, inferredEdges, exportMode }: AppProps) {
+/**
+ * App is the top-level application component for UI Navigation Map.
+ *
+ * Responsibilities:
+ * - Mounts ReactFlowProvider context.
+ * - Manages viewer active/closed state and smooth return focus transitions.
+ * - Synchronizes browser document title with project configuration.
+ * - Handles persistent canvas settings (light/dark appearance, accent palette, etc.).
+ */
+export function App({
+  config,
+  screens,
+  inferredEdges,
+  exportMode,
+}: AppProps) {
   const [viewingScreen, setViewingScreen] = useState<string | null>(null)
   const [focusNodeId, setFocusNodeId] = useState<string | null>(null)
   const [settings, setSettings] = useState<CanvasSettings>(() =>
-    exportMode ? { ...DEFAULT_CANVAS_SETTINGS } : getInitialSettings()
+    exportMode ? { ...DEFAULT_CANVAS_SETTINGS } : getInitialSettings(),
   )
 
+  // Synchronize browser tab title
   useEffect(() => {
-    document.title = config.name ? `${config.name} — UI Navigation Map` : "UI Navigation Map"
+    document.title = config.name
+      ? `${config.name} — UI Navigation Map`
+      : "UI Navigation Map"
   }, [config.name])
 
   const viewingConfig = viewingScreen ? config.screens[viewingScreen] : null
 
+  // Transition from full-screen viewer back to canvas
   const handleCloseViewer = () => {
     setFocusNodeId(viewingScreen)
     setViewingScreen(null)
   }
 
-  const handleSettingsChange = exportMode ? undefined : (newSettings: CanvasSettings) => {
-    setSettings(newSettings)
-    try {
-      localStorage.setItem(DF_SETTINGS_KEY, JSON.stringify(newSettings))
-    } catch {
-      // localStorage unavailable
-    }
-  }
+  // Handle settings update and persist to browser storage
+  const handleSettingsChange = exportMode
+    ? undefined
+    : (newSettings: CanvasSettings) => {
+        setSettings(newSettings)
+        try {
+          localStorage.setItem(
+            SETTINGS_STORAGE_KEY,
+            JSON.stringify(newSettings),
+          )
+        } catch {
+          // localStorage full or unavailable
+        }
+      }
 
   return (
     <ReactFlowProvider>
-      <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
+      <div
+        style={{
+          width: "100vw",
+          height: "100vh",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* Infinite React Flow Canvas */}
         <Canvas
           config={config}
           screens={screens}
@@ -71,6 +115,8 @@ export function App({ config, screens, inferredEdges, exportMode }: AppProps) {
           projectName={config.name}
           exportMode={exportMode}
         />
+
+        {/* Interactive Fullscreen Screen Viewer */}
         {viewingScreen && viewingConfig && screens[viewingScreen] && (
           <Viewer
             key={viewingScreen}
