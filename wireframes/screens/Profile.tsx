@@ -1,0 +1,568 @@
+import { useState } from "react"
+
+const pinnedRepos = [
+  { name: "react-starter", desc: "Modern React starter template with TypeScript and Vite", lang: "TypeScript", langColor: "var(--unm-info)", stars: "1.2k", forks: 156 },
+  { name: "api-toolkit", desc: "REST & GraphQL API utilities for Node.js", lang: "TypeScript", langColor: "var(--unm-info)", stars: "847", forks: 92 },
+  { name: "dotfiles", desc: "My development environment configs", lang: "Shell", langColor: "var(--unm-success)", stars: "234", forks: 45 },
+  { name: "design-system", desc: "Component library for modern web apps", lang: "TypeScript", langColor: "var(--unm-info)", stars: "567", forks: 78 },
+]
+
+const starredRepos = [
+  { name: "vercel/next.js", desc: "The React Framework", lang: "JavaScript", langColor: "var(--unm-warning)", stars: "124k" },
+  { name: "tailwindlabs/tailwindcss", desc: "A utility-first CSS framework", lang: "TypeScript", langColor: "var(--unm-info)", stars: "82k" },
+  { name: "facebook/react", desc: "A JavaScript library for building UIs", lang: "JavaScript", langColor: "var(--unm-warning)", stars: "228k" },
+]
+
+// Generate a fixed contribution grid
+const contributions: number[][] = []
+for (let week = 0; week < 52; week++) {
+  const days: number[] = []
+  for (let day = 0; day < 7; day++) {
+    const v = (week * 7 + day * 13 + 7) % 10
+    days.push(v < 3 ? 0 : v < 5 ? 1 : v < 7 ? 2 : v < 9 ? 3 : 4)
+  }
+  contributions.push(days)
+}
+
+const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+function contributionColor(level: number): string {
+  switch (level) {
+    case 0: return "var(--unm-surface-alt)"
+    case 1: return "color-mix(in srgb, var(--unm-success) 25%, transparent)"
+    case 2: return "color-mix(in srgb, var(--unm-success) 50%, transparent)"
+    case 3: return "color-mix(in srgb, var(--unm-success) 75%, transparent)"
+    case 4: return "var(--unm-success)"
+    default: return "var(--unm-surface-alt)"
+  }
+}
+
+export default function Profile() {
+  const [activeTab, setActiveTab] = useState<"overview" | "repos" | "stars">("overview")
+
+  const tabs: { key: "overview" | "repos" | "stars"; label: string; count: number | null }[] = [
+    { key: "overview", label: "Overview", count: null },
+    { key: "repos", label: "Repos", count: 47 },
+    { key: "stars", label: "Stars", count: 234 },
+  ]
+
+  return (
+    <div
+      style={{
+        background: "var(--unm-background)",
+        minHeight: "100vh",
+        fontFamily: "var(--unm-font-family)",
+        color: "var(--unm-text)",
+      }}
+    >
+      {/* Nav bar */}
+      <nav
+        style={{
+          background: "var(--unm-surface)",
+          borderBottom: "1px solid var(--unm-border)",
+          padding: `var(--unm-spacing-sm) var(--unm-spacing-md)`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--unm-spacing-sm)" }}>
+          <button
+            style={{
+              color: "var(--unm-text)",
+              fontSize: "0.875rem",
+              cursor: "pointer",
+              background: "transparent",
+              border: "none",
+              padding: 0,
+            }}
+          >
+            &#9776;
+          </button>
+          <span style={{ color: "var(--unm-text)", fontWeight: 600, fontSize: "0.875rem" }}>GH</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--unm-spacing-sm)" }}>
+          <button
+            data-unm-navigate="notifications"
+            style={{
+              color: "var(--unm-text)",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+              padding: 0,
+            }}
+          >
+            &#128276;
+          </button>
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: "var(--unm-radius-full)",
+              background: "var(--unm-secondary)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#fff",
+              fontSize: "0.75rem",
+              fontWeight: 600,
+            }}
+          >
+            OS
+          </div>
+        </div>
+      </nav>
+
+      <div style={{ padding: "var(--unm-spacing-md)" }}>
+        {/* Profile header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "var(--unm-spacing-md)",
+            marginBottom: "var(--unm-spacing-md)",
+          }}
+        >
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: "var(--unm-radius-full)",
+              background: "var(--unm-secondary)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <span style={{ color: "#fff", fontSize: "1.25rem", fontWeight: 700 }}>OS</span>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h1 style={{ color: "var(--unm-text)", fontSize: "1rem", fontWeight: 700, margin: 0 }}>
+              The Octocat
+            </h1>
+            <p style={{ color: "var(--unm-text-muted)", fontSize: "0.75rem", margin: 0 }}>
+              octocat
+            </p>
+            <p
+              style={{
+                color: "var(--unm-text)",
+                fontSize: "0.75rem",
+                marginTop: "var(--unm-spacing-xs)",
+                marginBottom: 0,
+                marginLeft: 0,
+                marginRight: 0,
+                lineHeight: 1.6,
+              }}
+            >
+              Open source enthusiast. Building tools for developers. Staff Engineer @acme-corp
+            </p>
+          </div>
+        </div>
+
+        {/* Edit profile button */}
+        <button
+          style={{
+            width: "100%",
+            background: "transparent",
+            border: "1px solid var(--unm-border)",
+            borderRadius: "var(--unm-radius-md)",
+            padding: `var(--unm-spacing-xs) 0`,
+            fontSize: "0.75rem",
+            cursor: "pointer",
+            color: "var(--unm-text)",
+            marginBottom: "var(--unm-spacing-md)",
+            fontFamily: "var(--unm-font-family)",
+          }}
+        >
+          Edit profile
+        </button>
+
+        {/* Stats row */}
+        <p
+          style={{
+            color: "var(--unm-text-muted)",
+            fontSize: "0.75rem",
+            margin: 0,
+            marginBottom: "var(--unm-spacing-sm)",
+          }}
+        >
+          <span style={{ color: "var(--unm-text)", fontWeight: 700 }}>284</span> followers
+          {" \u00B7 "}
+          <span style={{ color: "var(--unm-text)", fontWeight: 700 }}>12</span> following
+          {" \u00B7 "}
+          <span style={{ color: "var(--unm-text)", fontWeight: 700 }}>47</span> repos
+        </p>
+
+        {/* Details */}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            columnGap: "var(--unm-spacing-md)",
+            rowGap: "var(--unm-spacing-xs)",
+            fontSize: "0.75rem",
+            color: "var(--unm-text-muted)",
+            marginBottom: "var(--unm-spacing-md)",
+          }}
+        >
+          <span>
+            🏢 <span style={{ color: "var(--unm-text)" }}>Acme Corp</span>
+          </span>
+          <span>
+            📍 <span style={{ color: "var(--unm-text)" }}>San Francisco, CA</span>
+          </span>
+          <span>
+            🔗 <span style={{ color: "var(--unm-primary)" }}>octocat.dev</span>
+          </span>
+          <span>
+            📅 <span style={{ color: "var(--unm-text)" }}>Joined Jan 2019</span>
+          </span>
+        </div>
+
+        {/* Tab bar */}
+        <div
+          style={{
+            display: "flex",
+            gap: "var(--unm-spacing-sm)",
+            borderBottom: "1px solid var(--unm-border)",
+            marginBottom: "var(--unm-spacing-md)",
+            overflowX: "auto",
+          }}
+        >
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                background: "transparent",
+                border: "none",
+                borderBottom: activeTab === tab.key ? "2px solid var(--unm-primary)" : "2px solid transparent",
+                paddingBottom: "var(--unm-spacing-sm)",
+                paddingTop: "var(--unm-spacing-xs)",
+                paddingLeft: "var(--unm-spacing-xs)",
+                paddingRight: "var(--unm-spacing-xs)",
+                cursor: "pointer",
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                whiteSpace: "nowrap",
+                color: activeTab === tab.key ? "var(--unm-text)" : "var(--unm-text-muted)",
+                fontFamily: "var(--unm-font-family)",
+              }}
+            >
+              {tab.label}
+              {tab.count !== null && (
+                <span
+                  style={{
+                    marginLeft: 4,
+                    background: "var(--unm-surface-alt)",
+                    color: "var(--unm-text-muted)",
+                    borderRadius: "var(--unm-radius-full)",
+                    padding: "1px var(--unm-spacing-xs)",
+                    fontSize: "10px",
+                  }}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab content */}
+        {activeTab === "overview" && (
+          <div>
+            {/* Pinned Repositories */}
+            <h2
+              style={{
+                color: "var(--unm-text)",
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                margin: 0,
+                marginBottom: "var(--unm-spacing-sm)",
+                display: "flex",
+                alignItems: "center",
+                gap: "var(--unm-spacing-xs)",
+              }}
+            >
+              📌 Pinned
+            </h2>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "var(--unm-spacing-sm)",
+                marginBottom: "var(--unm-spacing-md)",
+              }}
+            >
+              {pinnedRepos.map((repo, i) => (
+                <div
+                  key={repo.name}
+                  style={{
+                    background: "var(--unm-surface)",
+                    border: "1px solid var(--unm-border)",
+                    borderRadius: "var(--unm-radius-lg)",
+                    padding: "var(--unm-spacing-sm)",
+                  }}
+                >
+                  <a
+                    style={{
+                      color: "var(--unm-primary)",
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      textDecoration: "none",
+                    }}
+                    {...(i === 0 ? { "data-unm-navigate": "repo" } : {})}
+                  >
+                    {repo.name}
+                  </a>
+                  <p
+                    style={{
+                      color: "var(--unm-text-muted)",
+                      fontSize: "10px",
+                      margin: 0,
+                      marginTop: "var(--unm-spacing-xs)",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {repo.desc}
+                  </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "var(--unm-spacing-md)",
+                      marginTop: "var(--unm-spacing-xs)",
+                      fontSize: "10px",
+                      color: "var(--unm-text-muted)",
+                    }}
+                  >
+                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <span
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: "var(--unm-radius-full)",
+                          background: repo.langColor,
+                          display: "inline-block",
+                        }}
+                      />
+                      {repo.lang}
+                    </span>
+                    <span>{"\u2605"} {repo.stars}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Contribution Graph */}
+            <div
+              style={{
+                background: "var(--unm-surface)",
+                border: "1px solid var(--unm-border)",
+                borderRadius: "var(--unm-radius-lg)",
+                padding: "var(--unm-spacing-sm)",
+              }}
+            >
+              <h3
+                style={{
+                  color: "var(--unm-text)",
+                  fontSize: "0.75rem",
+                  fontWeight: 500,
+                  margin: 0,
+                  marginBottom: "var(--unm-spacing-sm)",
+                }}
+              >
+                742 contributions in the last year
+              </h3>
+
+              {/* Month labels */}
+              <div style={{ display: "flex", marginBottom: 2 }}>
+                {monthLabels.map((month) => (
+                  <span
+                    key={month}
+                    style={{
+                      color: "var(--unm-text-muted)",
+                      fontSize: "7px",
+                      width: `${100 / 12}%`,
+                    }}
+                  >
+                    {month}
+                  </span>
+                ))}
+              </div>
+
+              {/* Grid */}
+              <div style={{ display: "flex", gap: 1, overflow: "hidden" }}>
+                {contributions.map((week, wi) => (
+                  <div key={wi} style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                    {week.map((level, di) => (
+                      <div
+                        key={di}
+                        style={{
+                          width: 5,
+                          height: 5,
+                          borderRadius: 1,
+                          background: contributionColor(level),
+                        }}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              {/* Legend */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  gap: 2,
+                  marginTop: "var(--unm-spacing-xs)",
+                  fontSize: "7px",
+                  color: "var(--unm-text-muted)",
+                }}
+              >
+                <span>Less</span>
+                {[0, 1, 2, 3, 4].map((level) => (
+                  <div
+                    key={level}
+                    style={{
+                      width: 5,
+                      height: 5,
+                      borderRadius: 1,
+                      background: contributionColor(level),
+                    }}
+                  />
+                ))}
+                <span>More</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "repos" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--unm-spacing-sm)" }}>
+            {pinnedRepos.map((repo) => (
+              <div
+                key={repo.name}
+                style={{
+                  background: "var(--unm-surface)",
+                  border: "1px solid var(--unm-border)",
+                  borderRadius: "var(--unm-radius-lg)",
+                  padding: "var(--unm-spacing-sm)",
+                }}
+              >
+                <span
+                  style={{
+                    color: "var(--unm-primary)",
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  {repo.name}
+                </span>
+                <p
+                  style={{
+                    color: "var(--unm-text-muted)",
+                    fontSize: "10px",
+                    margin: 0,
+                    marginTop: "var(--unm-spacing-xs)",
+                  }}
+                >
+                  {repo.desc}
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--unm-spacing-md)",
+                    marginTop: "var(--unm-spacing-xs)",
+                    fontSize: "10px",
+                    color: "var(--unm-text-muted)",
+                  }}
+                >
+                  <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "var(--unm-radius-full)",
+                        background: repo.langColor,
+                        display: "inline-block",
+                      }}
+                    />
+                    {repo.lang}
+                  </span>
+                  <span>{"\u2605"} {repo.stars}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeTab === "stars" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--unm-spacing-sm)" }}>
+            {starredRepos.map((repo) => (
+              <div
+                key={repo.name}
+                style={{
+                  background: "var(--unm-surface)",
+                  border: "1px solid var(--unm-border)",
+                  borderRadius: "var(--unm-radius-lg)",
+                  padding: "var(--unm-spacing-sm)",
+                }}
+              >
+                <span
+                  style={{
+                    color: "var(--unm-primary)",
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  {repo.name}
+                </span>
+                <p
+                  style={{
+                    color: "var(--unm-text-muted)",
+                    fontSize: "10px",
+                    margin: 0,
+                    marginTop: "var(--unm-spacing-xs)",
+                  }}
+                >
+                  {repo.desc}
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--unm-spacing-md)",
+                    marginTop: "var(--unm-spacing-xs)",
+                    fontSize: "10px",
+                    color: "var(--unm-text-muted)",
+                  }}
+                >
+                  <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "var(--unm-radius-full)",
+                        background: repo.langColor,
+                        display: "inline-block",
+                      }}
+                    />
+                    {repo.lang}
+                  </span>
+                  <span>{"\u2605"} {repo.stars}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

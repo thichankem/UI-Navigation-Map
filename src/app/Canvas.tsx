@@ -348,7 +348,17 @@ export function Canvas({
         onInit={(instance) => instance.fitView()}
       >
         <FocusHandler focusNodeId={focusNodeId} />
-        <MiniMap pannable zoomable />
+        <MiniMap
+          pannable
+          zoomable
+          style={{
+            background: isDarkCanvas ? "#0a0e17" : "#ffffff",
+            border: isDarkCanvas ? "1px solid #1e293b" : "1px solid #e2e8f0",
+            borderRadius: 8,
+          }}
+          maskColor={isDarkCanvas ? "rgba(0, 0, 0, 0.65)" : "rgba(240, 244, 248, 0.6)"}
+          nodeColor={(n: any) => n.data?.color ?? (isDarkCanvas ? "#38bdf8" : "#94a3b8")}
+        />
 
         {/* Dynamic canvas pattern background */}
         {settings && settings.backgroundStyle !== "blank" && (

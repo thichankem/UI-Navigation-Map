@@ -208,16 +208,16 @@ export default function Profile() {
           }}
         >
           <span>
-            \uD83C\uDFE2 <span style={{ color: "var(--unm-text)" }}>Acme Corp</span>
+            🏢 <span style={{ color: "var(--unm-text)" }}>Acme Corp</span>
           </span>
           <span>
-            \uD83D\uDCCD <span style={{ color: "var(--unm-text)" }}>San Francisco, CA</span>
+            📍 <span style={{ color: "var(--unm-text)" }}>San Francisco, CA</span>
           </span>
           <span>
-            \uD83D\uDD17 <span style={{ color: "var(--unm-primary)" }}>octocat.dev</span>
+            🔗 <span style={{ color: "var(--unm-primary)" }}>octocat.dev</span>
           </span>
           <span>
-            \uD83D\uDCC5 <span style={{ color: "var(--unm-text)" }}>Joined Jan 2019</span>
+            📅 <span style={{ color: "var(--unm-text)" }}>Joined Jan 2019</span>
           </span>
         </div>
 
@@ -286,7 +286,7 @@ export default function Profile() {
                 gap: "var(--unm-spacing-xs)",
               }}
             >
-              \uD83D\uDCCC Pinned
+              📌 Pinned
             </h2>
             <div
               style={{
