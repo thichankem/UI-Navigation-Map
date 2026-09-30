@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { AboutModal } from "./AboutModal"
 import { Toast, type ToastData } from "./Toast"
-import { GitHubIcon, DownloadIcon } from "./icons"
+import { DownloadIcon } from "./icons"
 
 /**
  * Props for the LogoBadge component.
@@ -22,7 +22,6 @@ const TOAST_DURATION_MS = 5000
  * Includes:
  * - Brand logo linking to repository
  * - "About" button opening modal with project overview
- * - "Contribute" link to GitHub
  * - One-click static standalone HTML export trigger
  */
 export function LogoBadge({ dark, exportMode }: LogoBadgeProps) {
@@ -147,30 +146,6 @@ export function LogoBadge({ dark, exportMode }: LogoBadgeProps) {
         >
           About
         </button>
-
-        <div style={{ width: 1, height: 16, background: dividerColor }} />
-
-        {/* Contribute via GitHub */}
-        <a
-          href="https://github.com/thichankem/UI-Navigation-Map"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Contribute via GitHub"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 5,
-            padding: "2px 8px",
-            borderRadius: 9999,
-            fontSize: 12,
-            fontWeight: 500,
-            color: pillColor,
-            textDecoration: "none",
-          }}
-        >
-          <GitHubIcon />
-          Contribute
-        </a>
 
         {/* HTML Export Button (hidden in static export) */}
         {!exportMode && (
