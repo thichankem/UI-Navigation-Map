@@ -46,6 +46,11 @@
     "url": "https://github.com/thichankem/UI-Navigation-Map"
   },
   "homepage": "https://github.com/thichankem/UI-Navigation-Map",
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2
+  },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.0",
     "@xyflow/react": "^12.10.1",
