@@ -10,7 +10,6 @@
   <a href="https://github.com/thichankem/UI-Navigation-Map/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="MIT License" /></a>
   <img src="https://img.shields.io/badge/react-19-61dafb.svg?style=flat-square&logo=react" alt="React 19" />
   <img src="https://img.shields.io/badge/typescript-5.9-3178c6.svg?style=flat-square&logo=typescript" alt="TypeScript 5.9" />
-  <img src="https://img.shields.io/badge/tests-299%20passed-success.svg?style=flat-square" alt="299 Passing Tests" />
   <img src="https://img.shields.io/badge/tailwindcss-v4-38bdf8.svg?style=flat-square&logo=tailwindcss" alt="Tailwind CSS v4" />
 </p>
 
@@ -175,7 +174,7 @@ ui-navigation-map export [--dir ./wireframes] [--output ./ui-navigation-map.html
 # Install dependencies
 pnpm install
 
-# Run Vitest test suite (299 tests)
+# Run Vitest test suite
 pnpm test
 
 # Build dual ESM/CJS packages
